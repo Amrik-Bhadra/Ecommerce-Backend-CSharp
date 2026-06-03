@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  
+  // additional settings for the IIS profile
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:5001",
+      "sslPort": 0
+    }
+  },
+
+  "profiles": {
+    "MyProject.Kestrel": {
+      "commandName": "Project",
+      "dotnetRunMessages": true, // if someone has used dotnet commands in CLI then apt. messages will be seen as logs in kestrel window
+      "launchBrowser": true, // when app runs, will browser gets launched automatically or not
+      "applicationUrl": "http://localhost:5253", // here is the url where browser opens, or out server is running at given port
+      // global variables for some configurations for entire application
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+
+    // if want to add a reverse proxy like IIS/NGinx/Apache add a new profile here
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
