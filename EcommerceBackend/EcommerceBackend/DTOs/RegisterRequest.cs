@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EcommerceBackend.Models;
+using System.ComponentModel.DataAnnotations;
 namespace EcommerceBackend.DTOs;
 public class RegisterRequest
 {
@@ -11,4 +12,5 @@ public class RegisterRequest
 
     [Required, MinLength(8, ErrorMessage = "Password must be of minimum 8 characters.")]
     public String Password { get; set;  } = string.Empty;
+    public UserRole Role { get; set; }
 }

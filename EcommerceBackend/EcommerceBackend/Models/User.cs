@@ -1,6 +1,15 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
+
 namespace EcommerceBackend.Models;
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum UserRole
+{
+    Customer, Seller, Admin
+}
+
 public class User
 {
     public int Id { get; set; }
@@ -16,6 +25,10 @@ public class User
     [Required, MinLength(8, ErrorMessage = "Password must be of minimum 8 characters.")]
     public string PasswordHash { get; set; } = string.Empty; // never store password as plain text, store as hash
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    [Required]
+    [Column(TypeName = "nvarchar(20)")]
+    public UserRole Role { get; set; } = UserRole.Customer;
 
     // for tracking force logout
     [Required]
