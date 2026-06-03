@@ -34,6 +34,7 @@ public class AuthService : IAuthService
             Email = request.Email,
             Username = request.Username,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            SecurityStamp = Guid.NewGuid().ToString(), // safety stamp initialization
             CreatedAt = DateTime.UtcNow,
         };
 
@@ -67,7 +68,9 @@ public class AuthService : IAuthService
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Email, user.Email)
+            new Claim(ClaimTypes.Email, user.Email),
+            // packing security stamp inside token
+            new Claim("SecurityStamp", user.SecurityStamp)
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor
@@ -137,6 +140,9 @@ public class AuthService : IAuthService
 
         // encrypt the new password and store it in database
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+        // new stamp, so old tokens become invalid
+        user.SecurityStamp = Guid.NewGuid().ToString();
 
         // Security cleanup: Clear OTP and related fields after successful password reset
         user.ResetOtp = null;

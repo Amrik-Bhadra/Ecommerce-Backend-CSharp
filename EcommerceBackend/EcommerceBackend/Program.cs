@@ -14,13 +14,14 @@
 
     When run the app, in background kestrel server will be running
  */
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using EcommerceBackend.Data;
 using EcommerceBackend.Middlewares;
 using EcommerceBackend.Repositories;
 using EcommerceBackend.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -73,6 +74,26 @@ builder.Services.AddAuthentication(options =>
                 context.Token = context.Request.Cookies["X-Auth-Token"];
             }
             return Task.CompletedTask;
+        },
+
+        OnTokenValidated = async context =>
+        {
+            var userIdClaim = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var tokenStampClaim = context.Principal?.FindFirst("SecurityStamp")?.Value;
+
+            if(string.IsNullOrEmpty(userIdClaim) || string.IsNullOrEmpty(tokenStampClaim))
+            {
+                context.Fail("Invalid token structure: Missing claims");
+                return;
+            }
+
+            var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+            var user = await dbContext.Users.FindAsync(int.Parse(userIdClaim));
+            
+            if(user == null || user.SecurityStamp != tokenStampClaim)
+            {
+                context.Fail("Token is no longer valid. Session revoked due to security updates/password reset.");
+            }
         }
     };
 });
