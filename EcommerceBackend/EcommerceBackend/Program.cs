@@ -23,10 +23,7 @@ using EcommerceBackend.Repositories;
 using EcommerceBackend.Services;
 using System.Text;
 
-DotNetEnv.Env.Load(); // Load environment variables from .env file (if exists)
-
 var builder = WebApplication.CreateBuilder(args);
-builder.Configuration.AddEnvironmentVariables();
 
 // ==========================================
 // 1. CONFIGURATIONS & CORE INFRAS (SETTINGS)
@@ -81,12 +78,12 @@ builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 
 // ==========================================
 // 3. APPLICATION BUILD
 // ==========================================
-
 var app = builder.Build(); // Kestrel application object built here
 
 
