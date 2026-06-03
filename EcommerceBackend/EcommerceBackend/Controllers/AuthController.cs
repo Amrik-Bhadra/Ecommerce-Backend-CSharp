@@ -32,8 +32,16 @@ public class AuthController : ControllerBase
     public IActionResult Login([FromBody] LoginRequest request)
     {
         var token = _authService.Login(request);
-        var tokenData = new { Token = token };
-        return Ok(ApiResponse<object>.SuccessResponse("User logged in successfully!", tokenData));
+        var cookieOptins = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTime.UtcNow.AddDays(7)
+        };
+
+        Response.Cookies.Append("X-Auth-Token", token, cookieOptins);
+        return Ok(ApiResponse<object>.SuccessResponse(message: "User logged in successfully!"));
     }
 
     [HttpPost("forgot-password")]
@@ -68,8 +76,13 @@ public class AuthController : ControllerBase
     [Authorize]
     public IActionResult Logout()
     {
-        // Since JWT is stateless, we can't really "logout" on the server side.
-        // The client should simply delete the token on their end to "logout".
+        Response.Cookies.Delete("X-Auth-Token", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax
+        });
+
         return Ok(ApiResponse<string>.SuccessResponse("User logged out successfully! Please delete the token on client side."));
     }
 }

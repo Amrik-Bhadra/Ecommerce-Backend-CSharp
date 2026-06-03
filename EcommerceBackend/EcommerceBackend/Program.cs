@@ -63,6 +63,18 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtAudience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
     };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if(context.Request.Cookies.ContainsKey("X-Auth-Token"))
+            {
+                context.Token = context.Request.Cookies["X-Auth-Token"];
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
 // DbContext ko register kiya (SQL Server Connection ke sath)
