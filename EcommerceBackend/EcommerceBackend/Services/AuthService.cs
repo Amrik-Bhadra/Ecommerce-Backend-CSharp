@@ -35,6 +35,8 @@ public class AuthService : IAuthService
             Username = request.Username,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             SecurityStamp = Guid.NewGuid().ToString(), // safety stamp initialization
+            // Admin role cannot be directly registered
+            Role = request.Role == UserRole.Admin ? UserRole.Customer : request.Role,
             CreatedAt = DateTime.UtcNow,
         };
 
@@ -70,7 +72,8 @@ public class AuthService : IAuthService
             new Claim(ClaimTypes.Name, user.Username),
             new Claim(ClaimTypes.Email, user.Email),
             // packing security stamp inside token
-            new Claim("SecurityStamp", user.SecurityStamp)
+            new Claim("SecurityStamp", user.SecurityStamp),
+            new Claim(ClaimTypes.Role, user.Role.ToString())
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor

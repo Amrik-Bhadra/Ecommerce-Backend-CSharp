@@ -44,7 +44,7 @@ public class ProductsController : ControllerBase
     // POST: api/products
     [HttpPost]
     // Now without valid JWT this controller cannot be accessed
-    [Authorize]
+    [Authorize(Roles = "Admin,Seller")]
     public IActionResult CreateProduct([FromBody] CreateProductRequest request)
     {
         var newProduct = _inventoryService.AddProduct(request);
