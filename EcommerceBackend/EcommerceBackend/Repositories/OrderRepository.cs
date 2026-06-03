@@ -29,6 +29,8 @@ namespace EcommerceBackend.Repositories
         {
             // latest order on top
             return _context.Orders
+                .Include(o => o.OrderItems)
+                .ThenInclude(o => o.Product)
                 .Where(o => o.UserId == userId)
                 .OrderByDescending(o => o.OrderDate)
                 .ToList();

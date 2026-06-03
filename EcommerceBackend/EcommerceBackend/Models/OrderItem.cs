@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace EcommerceBackend.Models;
 public class OrderItem
@@ -11,6 +12,7 @@ public class OrderItem
     [Column(TypeName = "decimal(18,2)")]
     public decimal UnitPrice { get; set; }
 
+    [JsonIgnore]
     [ForeignKey("OrderId")]
     public Order? Order { get; set; }
 
