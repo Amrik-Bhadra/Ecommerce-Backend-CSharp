@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using EcommerceBackend.DTOs;
+﻿using EcommerceBackend.DTOs;
+using EcommerceBackend.Exceptions;
 using EcommerceBackend.Models;
 using EcommerceBackend.Services;
-using EcommerceBackend.Exceptions;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 namespace EcommerceBackend.Controllers;
 
 // tells the framework that it is a Web API controller
@@ -22,37 +23,52 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetAllProducts()
+    public async Task<IActionResult> GetAllProducts()
     {
-        var products = _inventoryService.GetAllProducts();
+        var products = await _inventoryService.GetAllActiveProductsAsync();
         return Ok(ApiResponse<object>.SuccessResponse(data: products));
     }
 
     // GET: api/products/{id}
-    [HttpGet("{id:int}")] // parameters and validation set
-    public IActionResult GetProductById(int id) // accepting the parameter in function
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetProductById(int id)
     {
-        var product = _inventoryService.GetProductById(id);
-        if(product == null)
+        var product = await _inventoryService.GetProductByIdAsync(id);
+        if (product == null)
         {
-            throw new NotFoundException("Product not found");
+            throw new NotFoundException("Product not found or currently unavailable.");
         }
 
         return Ok(ApiResponse<object>.SuccessResponse(data: product));
     }
 
+    [HttpGet("my-shop")]
+    [Authorize(Roles = "Seller")] // Only seller can access their own factory dashboard
+    public async Task<IActionResult> GetMyShopProducts()
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var products = await _inventoryService.GetProductsBySellerUserIdAsync(userId);
+        return Ok(ApiResponse<object>.SuccessResponse(data: products, message: "Shop inventory loaded successfully."));
+    }
+
     // POST: api/products
     [HttpPost]
-    // Now without valid JWT this controller cannot be accessed
-    [Authorize(Roles = "Admin,Seller")]
-    public IActionResult CreateProduct([FromBody] CreateProductRequest request)
+    [Authorize(Roles = "Seller")] // Admin can monitor, but only Seller creates product for their shop
+    public async Task<IActionResult> CreateProduct([FromBody] CreateProductRequest request)
     {
-        var newProduct = _inventoryService.AddProduct(request);
-        var response = ApiResponse<object>.SuccessResponse(data: newProduct, message: "Product created successfully");
+        // Token extract context identity safely
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        // Industry standard: 201 created status for new record creation
-        // new product is created and will be available at following url
-        // in response headers, for Location key we have url where the new item can be found
-        return CreatedAtAction(nameof(GetProductById), new { id = newProduct.Id }, response);
+        try
+        {
+            var newProduct = await _inventoryService.AddProductAsync(request, userId);
+            var response = ApiResponse<object>.SuccessResponse(data: newProduct, message: "Product created successfully");
+
+            return CreatedAtAction(nameof(GetProductById), new { id = newProduct.Id }, response);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResponse<string>.ErrorResponse(ex.Message));
+        }
     }
 }

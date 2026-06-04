@@ -3,9 +3,9 @@ using EcommerceBackend.Models;
 namespace EcommerceBackend.Services;
 public interface IAuthService
 {
-    User Register(RegisterRequest request);
-    string Login(LoginRequest request);
-    void ForgotPassword(string email);
-    bool VerifyOtp(string email, string otp);
-    void ResetPassword(string email, string newPassword);
+    Task<User> RegisterAsync(RegisterRequest request);
+    Task<string> LoginAsync(LoginRequest request);
+    Task ForgotPasswordAsync(string email);
+    Task<bool> VerifyOtpAsync(string email, string otp);
+    Task ResetPasswordAsync(string email, string newPassword);
 }

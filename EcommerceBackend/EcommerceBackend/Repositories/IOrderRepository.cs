@@ -3,7 +3,7 @@
 namespace EcommerceBackend.Repositories;
 public interface IOrderRepository
 {
-    void CreateOrder(Order order);
-    Order? GetOrderById(int orderId);
-    List<Order> GetOrdersByUserId(int userId);
+    Task CreateOrderAsync(Order order);
+    Task<Order?> GetOrderByIdAsync(int orderId);
+    Task<List<Order>> GetOrdersByUserIdAsync(int userId);
 }

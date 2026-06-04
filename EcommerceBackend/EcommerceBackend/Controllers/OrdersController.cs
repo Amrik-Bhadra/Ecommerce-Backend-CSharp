@@ -21,10 +21,11 @@ public class OrdersController : ControllerBase
 
     // Checkout endpoint
     [HttpPost("checkout")]
-    public IActionResult Checkout()
+    public async Task<IActionResult> Checkout([FromBody] CheckoutRequest request)
     {
-        int userId = User.GetUserId();
-        var completedOrder = _orderService.Checkout(userId);
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var completedOrder = await _orderService.CheckoutAsync(userId, request);
+
         var responseData = new
         {
             OrderId = completedOrder.Id,
@@ -36,10 +37,10 @@ public class OrdersController : ControllerBase
 
     // Order History Enpoint
     [HttpGet("history")]
-    public IActionResult GetOrderHistory()
+    public async Task<IActionResult> GetOrderHistory()
     {
-        int userId = User.GetUserId();
-        var orders = _orderService.GetUserOrderHistory(userId);
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var orders = await _orderService.GetUserOrderHistoryAsync(userId);
         return Ok(ApiResponse<object>.SuccessResponse("Your Order History", orders));
     }
 }

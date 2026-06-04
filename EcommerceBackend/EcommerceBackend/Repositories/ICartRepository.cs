@@ -2,10 +2,10 @@
 namespace EcommerceBackend.Repositories;
 public interface ICartRepository
 {
-    List<CartItem> GetCartByUserId(int userId);
-    CartItem? GetCartItem(int userId, int productId);
-    void AddItem(CartItem item);
-    void UpdateItem(CartItem item);
-    void RemoveItem(CartItem item);
-    void ClearCart(int userId);
+    Task<List<CartItem>> GetCartByUserIdAsync(int userId);
+    Task<CartItem?> GetCartItemAsync(int userId, int productId);
+    Task AddItemAsync(CartItem item);
+    Task UpdateItemAsync(CartItem item);
+    Task RemoveItemAsync(CartItem item);
+    Task ClearCartAsync(int userId);
 }

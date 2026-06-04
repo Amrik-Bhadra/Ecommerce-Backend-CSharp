@@ -11,29 +11,28 @@ namespace EcommerceBackend.Repositories
         {
             _context = context;
         }
-        public void CreateOrder(Order order)
+        public async Task CreateOrderAsync(Order order)
         {
-            _context.Orders.Add(order);
-            _context.SaveChanges();
+            await _context.Orders.AddAsync(order);
+            await _context.SaveChangesAsync();
         }
 
-        public Order? GetOrderById(int orderId)
+        public async Task<Order?> GetOrderByIdAsync(int orderId)
         {
-            return _context.Orders
+            return await _context.Orders
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Product)
-                .FirstOrDefault(o => o.Id == orderId);
+                .FirstOrDefaultAsync(o => o.Id == orderId);
         }
 
-        public List<Order> GetOrdersByUserId(int userId)
+        public async Task<List<Order>> GetOrdersByUserIdAsync(int userId)
         {
-            // latest order on top
-            return _context.Orders
+            return await _context.Orders
                 .Include(o => o.OrderItems)
-                .ThenInclude(o => o.Product)
+                .ThenInclude(oi => oi.Product)
                 .Where(o => o.UserId == userId)
                 .OrderByDescending(o => o.OrderDate)
-                .ToList();
+                .ToListAsync();
         }
     }
 }

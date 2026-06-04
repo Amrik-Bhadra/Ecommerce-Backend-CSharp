@@ -12,7 +12,7 @@ public class EmailService : IEmailService
         _logger = logger;
         _configuration = configuration;
     }
-    public void SendOtpEmail(string toEmail, string otp)
+    public async Task SendOtpEmailAsync(string toEmail, string otp)
     {
         try
         {
@@ -48,7 +48,7 @@ public class EmailService : IEmailService
             };
 
             // send email
-            smtpClient.Send(mailMessage);
+            await smtpClient.SendMailAsync(mailMessage);
             _logger.LogInformation("Email sent successfully via SMTP");
         }
         catch (Exception ex)

@@ -7,6 +7,10 @@ public class CreateProductRequest
     [StringLength(100, MinimumLength = 3, ErrorMessage = "Name should have atleast 3 characters")]
     public string ProductName { get; set; } = string.Empty;
 
+    [Required(ErrorMessage = "Product description is required!")]
+    [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters.")]
+    public string Description { get; set; } = string.Empty;
+
     [Range(0.01, 100000.00, ErrorMessage = "Price must be greater than 0.")]
     public decimal Price { get; set; }
 

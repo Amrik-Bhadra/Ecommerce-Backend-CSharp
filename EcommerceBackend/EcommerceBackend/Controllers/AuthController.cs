@@ -16,9 +16,9 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public IActionResult Register([FromBody] RegisterRequest request)
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        var createdUser = _authService.Register(request);
+        var createdUser = await _authService.RegisterAsync(request);
         var responseData = new
         {
             Id = createdUser.Id,
@@ -29,9 +29,9 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public IActionResult Login([FromBody] LoginRequest request)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var token = _authService.Login(request);
+        var token = await _authService.LoginAsync(request);
         var cookieOptins = new CookieOptions
         {
             HttpOnly = true,
@@ -45,16 +45,16 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("forgot-password")]
-    public IActionResult ForgotPassword([FromBody] ForgotPasswordRequest request)
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
-        _authService.ForgotPassword(request.Email);
+        await _authService.ForgotPasswordAsync(request.Email);
         return Ok(ApiResponse<string>.SuccessResponse("OTP sent to your email!"));
     }
 
     [HttpPost("verify-otp")]
-    public IActionResult VerifyOtp([FromBody] VerifyOtpRequest request)
+    public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
     {
-        bool isValid = _authService.VerifyOtp(request.Email, request.Otp);
+        bool isValid = await _authService.VerifyOtpAsync(request.Email, request.Otp);
         if (isValid)
         {
             return Ok(ApiResponse<string>.SuccessResponse("OTP verified successfully!"));
@@ -66,9 +66,9 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("reset-password")]
-    public IActionResult ResetPassword([FromBody] ResetPasswordRequest request)
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
     {
-        _authService.ResetPassword(request.Email, request.NewPassword);
+        await _authService.ResetPasswordAsync(request.Email, request.NewPassword);
         return Ok(ApiResponse<string>.SuccessResponse("Password reset successfully!"));
     }
 
