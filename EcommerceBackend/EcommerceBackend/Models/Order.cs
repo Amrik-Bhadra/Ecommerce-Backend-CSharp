@@ -16,5 +16,11 @@ public class Order
     public decimal TotalAmount { get; set; }
     public string Status { get; set; } = "Pending"; // Pending, Shipped, Delivered, Cancelled
 
+    [Required]
+    public int AddressId { get; set; }
+
+    [ForeignKey("AddressId")]
+    public Address? ShippingAddress { get; set; }
+
     public List<OrderItem> OrderItems { get; set; } = new();
 }
