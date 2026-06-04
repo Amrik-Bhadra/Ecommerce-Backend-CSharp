@@ -13,4 +13,10 @@ public class RegisterRequest
     [Required, MinLength(8, ErrorMessage = "Password must be of minimum 8 characters.")]
     public String Password { get; set;  } = string.Empty;
     public UserRole Role { get; set; }
+
+    [MaxLength(200, ErrorMessage = "Shop name cannot exceed 200 characters.")]
+    public string? ShopName { get; set; }
+
+    [MaxLength(500, ErrorMessage = "Shop description cannot exceed 500 characters.")]
+    public string? ShopDescription { get; set; }
 }

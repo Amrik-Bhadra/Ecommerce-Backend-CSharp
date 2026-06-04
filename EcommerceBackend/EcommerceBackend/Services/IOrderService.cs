@@ -1,8 +1,9 @@
 ﻿using EcommerceBackend.Models;
+using EcommerceBackend.DTOs;
 
 namespace EcommerceBackend.Services;
 public interface IOrderService
 {
-    Order Checkout(int userId);
-    List<Order> GetUserOrderHistory(int orderId);
+    Task<Order> CheckoutAsync(int userId, CheckoutRequest request);
+    Task<List<Order>> GetUserOrderHistoryAsync(int userId);
 }

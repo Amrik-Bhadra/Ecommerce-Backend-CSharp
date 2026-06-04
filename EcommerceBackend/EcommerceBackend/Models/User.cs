@@ -23,6 +23,7 @@ public class User
     public string Username { get; set; } = string.Empty;
 
     [Required, MinLength(8, ErrorMessage = "Password must be of minimum 8 characters.")]
+    [JsonIgnore]
     public string PasswordHash { get; set; } = string.Empty; // never store password as plain text, store as hash
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -40,4 +41,10 @@ public class User
     public string? ResetOtp { get; set; }
     public DateTime? OtpExpiry { get; set; }
     public bool IsOtpVerified { get; set; } = false;
+
+    [JsonIgnore]
+    public SellerProfile? SellerProfile { get; set; }
+
+    [JsonIgnore]
+    public CustomerProfile? CustomerProfile { get; set; }
 }

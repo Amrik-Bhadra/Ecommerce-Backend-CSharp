@@ -2,9 +2,9 @@
 namespace EcommerceBackend.Services;
 public interface ICartService
 {
-    void AddToCart(int userId, int productId, int quantity);
-    void RemoveFromCart(int userId, int productId);
-    void UpdateQuantity(int userId, int productId, UpdateAction action);
-    object GetUserCartSummary(int userId); // returns entire cart data + total price
-    void ClearCart(int userId);
+    Task AddToCartAsync(int userId, int productId, int quantity);
+    Task RemoveFromCartAsync(int userId, int productId);
+    Task UpdateQuantityAsync(int userId, int productId, UpdateAction action);
+    Task<object> GetUserCartSummaryAsync(int userId);
+    Task ClearCartAsync(int userId);
 }

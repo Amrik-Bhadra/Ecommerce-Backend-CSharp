@@ -21,12 +21,16 @@ public class AuthService : IAuthService
         _emailService = emailService;
     }
 
-    public User Register(RegisterRequest request)
+    public async Task<User> RegisterAsync(RegisterRequest request)
     {
         // check if email already exists or not
-        if(_userRepo.GetByEmail(request.Email) != null)
+        if(await _userRepo.GetByEmailAsync(request.Email) != null)
         {
             throw new Exception("Email already exists!");
+        }
+        if (request.Role == UserRole.Seller && string.IsNullOrWhiteSpace(request.ShopName))
+        {
+            throw new Exception("Shop Name is mandatory for Seller registration.");
         }
 
         var newUser = new User
@@ -40,13 +44,13 @@ public class AuthService : IAuthService
             CreatedAt = DateTime.UtcNow,
         };
 
-        return _userRepo.Add(newUser);
+        return await _userRepo.AddAsync(newUser, request.ShopName, request.ShopDescription);
     }
 
-    public string Login(LoginRequest request)
+    public async Task<string> LoginAsync(LoginRequest request)
     {
         // search for user using email
-        var user = _userRepo.GetByEmail(request.Email);
+        var user = await _userRepo.GetByEmailAsync(request.Email);
         if(user == null)
         {
             throw new Exception("User not found!");
@@ -60,7 +64,7 @@ public class AuthService : IAuthService
 
         return GeneratedJwtToken(user);
     }
-
+        
     private string GeneratedJwtToken(User user) 
     {
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -90,9 +94,9 @@ public class AuthService : IAuthService
     }
 
     // Forgot password
-    public void ForgotPassword(string email)
+    public async Task ForgotPasswordAsync(string email)
     {
-        var user = _userRepo.GetByEmail(email);
+        var user = await _userRepo.GetByEmailAsync(email);
         if (user == null)
         {
             throw new NotFoundException("User not found!");
@@ -106,15 +110,15 @@ public class AuthService : IAuthService
         user.IsOtpVerified = false;
 
         // update the user data in database
-        _userRepo.Update(user);
+        await _userRepo.UpdateAsync(user);
 
         // send the email with the generated OTP
-        _emailService.SendOtpEmail(email, generatedOtp);
+        await _emailService.SendOtpEmailAsync(email, generatedOtp);
     }
 
-    public bool VerifyOtp(string email, string otp)
+    public async Task<bool> VerifyOtpAsync(string email, string otp)
     {
-        var user = _userRepo.GetByEmail(email);
+        var user = await _userRepo.GetByEmailAsync(email);
         if(user == null) throw new NotFoundException("User not found!");
 
         // check if OTP is valid
@@ -125,14 +129,14 @@ public class AuthService : IAuthService
         }
 
         user.IsOtpVerified = true;
-        _userRepo.Update(user);
+        await _userRepo.UpdateAsync(user);
         return true;
     }
 
     // Reset password
-    public void ResetPassword(string email, string newPassword)
+    public async Task ResetPasswordAsync(string email, string newPassword)
     {
-        var user = _userRepo.GetByEmail(email);
+        var user = await _userRepo.GetByEmailAsync(email);
         if(user == null) throw new NotFoundException("User not found!");
 
         // if attacker directly tries to hit this endpoint without verifying OTP, then also we will not allow them to reset the password
@@ -152,6 +156,6 @@ public class AuthService : IAuthService
         user.OtpExpiry = null;
         user.IsOtpVerified = false;
 
-        _userRepo.Update(user);
+        await _userRepo.UpdateAsync(user);
     }
 }

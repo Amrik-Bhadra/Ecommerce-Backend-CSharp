@@ -1,6 +1,7 @@
 ﻿using EcommerceBackend.Data;
 using EcommerceBackend.Models;
 using EcommerceBackend.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace EcommerceBackend.Repositories;
 public class ProductRepository : IProductRepository
@@ -12,26 +13,38 @@ public class ProductRepository : IProductRepository
         _context = context;
     }
 
-    public IEnumerable<Product> GetAll()
+    public async Task<IEnumerable<Product>> GetAllActiveAsync()
     {
-        return _context.Products.ToList();
+        return await _context.Products
+            .Include(p => p.SellerProfile)
+            .ToListAsync();
     }
 
-    public Product? GetById(int id)
+    public async Task<IEnumerable<Product>> GetBySellerIdAsync(int sellerProfileId)
     {
-        return _context.Products.Find(id);
+        return await _context.Products
+            .Where(p => p.SellerProfileId == sellerProfileId)
+            .ToListAsync();
     }
 
-    public Product Add(Product product) 
-    { 
-        _context.Products.Add(product);
-        _context.SaveChanges();
+    public async Task<Product?> GetByIdAsync(int id)
+    {
+        return await _context.Products
+            .Include(p => p.SellerProfile)
+            .FirstOrDefaultAsync(p => p.Id == id);
+    }
+
+    public async Task<Product> AddAsync(Product product)
+    {
+        await _context.Products.AddAsync(product);
+        await _context.SaveChangesAsync();
         return product;
     }
 
-    public Product Update(Product product)
+    public async Task<Product> UpdateAsync(Product product)
     {
         _context.Products.Update(product);
+        await _context.SaveChangesAsync();
         return product;
     }
 }

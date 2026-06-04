@@ -9,42 +9,42 @@ public class CartRepository : ICartRepository
     {
         _context = context;
     }
-    public List<CartItem> GetCartByUserId(int userId)
+    public async Task<List<CartItem>> GetCartByUserIdAsync(int userId)
     {
-        return _context.CartItems
+        return await _context.CartItems
             .Include(c => c.Product)
             .Where(c => c.UserId == userId)
-            .ToList();
+            .ToListAsync();
     }
 
-    public CartItem? GetCartItem(int userId, int productId)
+    public async Task<CartItem?> GetCartItemAsync(int userId, int productId)
     {
-        return _context.CartItems.FirstOrDefault(c => c.UserId == userId && c.ProductId == productId);
+        return await _context.CartItems.FirstOrDefaultAsync(c => c.UserId == userId && c.ProductId == productId);
     }
 
-    public void AddItem(CartItem item)
+    public async Task AddItemAsync(CartItem item)
     {
-        _context.CartItems.Add(item);
-        _context.SaveChanges();
+        await _context.CartItems.AddAsync(item);
+        await _context.SaveChangesAsync();
     }
 
-    public void UpdateItem(CartItem item)
+    public async Task UpdateItemAsync(CartItem item)
     {
         _context.CartItems.Update(item);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
     }
-    public void RemoveItem(CartItem item)
+    public async Task RemoveItemAsync(CartItem item)
     {
         _context.CartItems.Remove(item);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
     }
-    public void ClearCart(int userId)
+    public async Task ClearCartAsync(int userId)
     {
-        var items = _context.CartItems.Where(c => c.UserId == userId).ToList();
+        var items = await _context.CartItems.Where(c => c.UserId == userId).ToListAsync();
         if (items.Any())
         {
             _context.CartItems.RemoveRange(items);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
     }
 }

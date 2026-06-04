@@ -9,7 +9,7 @@ namespace EcommerceBackend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Roles = "Customer")]
 public class CartController : ControllerBase
 {
     private readonly ICartService _cartService;
@@ -21,50 +21,50 @@ public class CartController : ControllerBase
     // Add item to cart
     // POST: api/cart/add-to-cart
     [HttpPost("add-to-cart")]
-    public IActionResult AddToCart([FromBody] AddToCartRequest request)
+    public async Task<IActionResult> AddToCart([FromBody] AddToCartRequest request)
     {
-        int userId = User.GetUserId();
-        _cartService.AddToCart(userId, request.ProductId, request.Quantity);
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await _cartService.AddToCartAsync(userId, request.ProductId, request.Quantity);
         return Ok(ApiResponse<object>.SuccessResponse("Product added to cart successfully!"));
     }
 
     // Update item quantity in cart
     // PUT: api/cart/update-quantity
     [HttpPut("update-quantity")]
-    public IActionResult UpdateQuantity([FromBody] UpdateQuantityRequest request)
+    public async Task<IActionResult> UpdateQuantity([FromBody] UpdateQuantityRequest request)
     {
-        int userId = User.GetUserId();
-        _cartService.UpdateQuantity(userId, request.ProductId, request.Action);
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await _cartService.UpdateQuantityAsync(userId, request.ProductId, request.Action);
         return Ok(ApiResponse<object>.SuccessResponse("Quantity Updated Successfully!"));
     }
 
     // Remove item from cart
     // DELETE: api/cart/remove-from-cart/{productId}
     [HttpDelete("remove-from-cart/{productId}")]
-    public IActionResult RemoveFromCart(int productId)
+    public async Task<IActionResult> RemoveFromCart(int productId)
     {
-        int userId = User.GetUserId();
-        _cartService.RemoveFromCart(userId, productId);
-        return Ok(new { Message = "Product removed from cart successfully!" });
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await _cartService.RemoveFromCartAsync(userId, productId);
+        return Ok(ApiResponse<object>.SuccessResponse("Product removed from cart successfully!"));
     }
 
     // Get cart summary
     // GET: api/cart/summary
     [HttpGet("summary")]
-    public IActionResult GetCartSummary()
+    public async Task<IActionResult> GetCartSummary()
     {
-        int userId = User.GetUserId();
-        var cartSummary = _cartService.GetUserCartSummary(userId);
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var cartSummary = await _cartService.GetUserCartSummaryAsync(userId);
         return Ok(ApiResponse<object>.SuccessResponse("Cart Summary Fetched Successfully!", cartSummary));
     }
 
     // Clear cart
     // DELETE: api/cart/clear-cart
     [HttpDelete("clear-cart")]
-    public IActionResult ClearCart()
+    public async Task<IActionResult> ClearCart()
     {
-        int userId = User.GetUserId();
-        _cartService.ClearCart(userId);
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await _cartService.ClearCartAsync(userId);
         return Ok(ApiResponse<object>.SuccessResponse("Cart cleared successfully!"));
     }
 }

@@ -2,8 +2,9 @@
 namespace EcommerceBackend.Repositories;
 public interface IProductRepository
 {
-    IEnumerable<Product> GetAll();
-    Product? GetById(int id);
-    Product Add(Product product);
-    Product Update(Product product);
+    Task<IEnumerable<Product>> GetAllActiveAsync();
+    Task<IEnumerable<Product>> GetBySellerIdAsync(int sellerProfileId);
+    Task<Product?> GetByIdAsync(int id);
+    Task<Product> AddAsync(Product product);
+    Task<Product> UpdateAsync(Product product);
 }

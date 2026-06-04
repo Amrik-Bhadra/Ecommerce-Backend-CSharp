@@ -1,6 +1,8 @@
 ﻿using EcommerceBackend.Data;
 using EcommerceBackend.Models;
 using EcommerceBackend.Repositories;
+using EcommerceBackend.DTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace EcommerceBackend.Services;
 public class OrderService : IOrderService
@@ -22,47 +24,51 @@ public class OrderService : IOrderService
         _context = context;
     }
 
-    public Order Checkout(int userId)
+    public async Task<Order> CheckoutAsync(int userId, CheckoutRequest request)
     {
-        // fetch user's cart where products are there
-        var cartItems = _cartRepo.GetCartByUserId(userId);
-        if (cartItems == null || !cartItems.Any())
-            throw new Exception("Cart is empty");
+        var customerProfile = await _context.CustomerProfiles.FirstOrDefaultAsync(cp => cp.UserId == userId);
+        if (customerProfile == null) throw new Exception("Customer profile not registered.");
 
-        // calculate grand total of cart : LINQ
+        var targetAddress = await _context.Addresses.FirstOrDefaultAsync(a => a.Id == request.AddressId);
+        if (targetAddress == null) throw new Exception("Selected Address does not exist.");
+
+        // Hacker prevention test: Is this address owned by this customer profile?
+        if (targetAddress.CustomerProfileId != customerProfile.Id)
+        {
+            throw new Exception("Security Alert: Unauthorized shipping address token bypass attempted!");
+        }
+
+        var cartItems = await _cartRepo.GetCartByUserIdAsync(userId);
+        if (cartItems == null || !cartItems.Any()) throw new Exception("Cart is empty");
+
         decimal grandTotal = cartItems.Sum(item => (item.Product?.Price ?? 0) * item.Quantity);
 
-        using var transaction = _context.Database.BeginTransaction();
-
+        // Async transactional context execution
+        using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            // create a new order with the cart details and grand total
             var newOrder = new Order
             {
                 UserId = userId,
+                AddressId = request.AddressId, // 🎯 Enforced into table constraint safely
                 OrderDate = DateTime.UtcNow,
                 TotalAmount = grandTotal,
                 Status = "Pending",
                 OrderItems = new List<OrderItem>()
             };
 
-            // run loop on cart items and validate inventory and deduct inventory
-            foreach(var cartItem in cartItems)
+            foreach (var cartItem in cartItems)
             {
-                var product = _productRepo.GetById(cartItem.ProductId);
-                if (product == null)
-                    throw new Exception($"Product {cartItem.Product?.ProductName} is currently not available.");
+                var product = await _productRepo.GetByIdAsync(cartItem.ProductId);
+                if (product == null || !product.IsActive)
+                    throw new Exception($"Product {cartItem.Product?.ProductName} is unavailable.");
 
-                // Edge case: if stock becomes insufficient during checkout
                 if (product.StockQuantity < cartItem.Quantity)
                     throw new Exception($"Product {product.ProductName} has insufficient stock.");
 
-                // realtime inventory deduction
                 product.StockQuantity -= cartItem.Quantity;
-                _productRepo.Update(product);
+                await _productRepo.UpdateAsync(product);
 
-
-                // OrderItem list entry added
                 var orderItem = new OrderItem
                 {
                     ProductId = cartItem.ProductId,
@@ -72,33 +78,18 @@ public class OrderService : IOrderService
                 newOrder.OrderItems.Add(orderItem);
             }
 
-            // save the order to the database
-            _orderRepo.CreateOrder(newOrder);
-
-            _context.SaveChanges();
-
-            // Empty the cart when order gets placed successfully
-            _cartRepo.ClearCart(userId);
-
-            transaction.Commit();
+            await _orderRepo.CreateOrderAsync(newOrder);
+            await _cartRepo.ClearCartAsync(userId);
+            await transaction.CommitAsync();
 
             return newOrder;
         }
         catch (Exception ex)
         {
-            // Rollback the transaction in case of any failure during checkout
-            // deducted stock will be reverted and order will not be created
-            transaction.Rollback();
-            if (ex.InnerException != null)
-            {
-                throw new Exception($"SQL ERROR: {ex.InnerException.Message}");
-            }
-            throw new Exception("Checkout failed: " + ex.Message);
+            await transaction.RollbackAsync();
+            throw new Exception("Checkout transactional engine failed: " + ex.Message);
         }
     }
 
-    public List<Order> GetUserOrderHistory(int userId)
-    {
-        return _orderRepo.GetOrdersByUserId(userId);
-    }
+    public async Task<List<Order>> GetUserOrderHistoryAsync(int userId) => await _orderRepo.GetOrdersByUserIdAsync(userId);
 }

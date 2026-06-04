@@ -3,8 +3,8 @@ using EcommerceBackend.Models;
 namespace EcommerceBackend.Services;
 public interface IInventoryService
 {
-    IEnumerable<Product> GetAllProducts();
-    Product? GetProductById(int id);
-
-    Product AddProduct(CreateProductRequest request);
+    Task<IEnumerable<Product>> GetAllActiveProductsAsync();
+    Task<IEnumerable<Product>> GetProductsBySellerUserIdAsync(int userId);
+    Task<Product?> GetProductByIdAsync(int id);
+    Task<Product> AddProductAsync(CreateProductRequest request, int userId);
 }
