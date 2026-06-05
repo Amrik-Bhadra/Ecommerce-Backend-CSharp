@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using EcommerceBackend.Services;
 using EcommerceBackend.Utils;
 using EcommerceBackend.DTOs;
+using EcommerceBackend.Exceptions;
 
 namespace EcommerceBackend.Controllers;
 
@@ -17,6 +18,26 @@ public class OrdersController : ControllerBase
     public OrdersController(IOrderService orderService)
     {
         _orderService = orderService;
+    }
+
+    [HttpGet]
+    [Route("{id:int}")]
+    public async Task<IActionResult> GetOrderDetails(int id) 
+    {
+        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        try
+        {
+            var order = await _orderService.GetOrderDetailsAsync(userId, id);
+            return Ok(ApiResponse<object>.SuccessResponse("Order details fetched successfully", data: order));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Forbid();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ApiResponse<string>.ErrorResponse(ex.Message));
+        }
     }
 
     // Checkout endpoint

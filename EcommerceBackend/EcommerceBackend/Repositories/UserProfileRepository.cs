@@ -12,7 +12,9 @@ public class UserProfileRepository : IUserProfileRepository
     }
     public async Task<CustomerProfile?> GetProfileByUserIdAsync(int userId)
     {
-        return await _context.CustomerProfiles.FirstOrDefaultAsync(cp => cp.UserId == userId);
+        return await _context.CustomerProfiles
+            .Include(cp => cp.Addresses)
+            .FirstOrDefaultAsync(cp => cp.UserId == userId);
     }
     public async Task<CustomerProfile> UpdateProfileAsync(CustomerProfile profile)
     {

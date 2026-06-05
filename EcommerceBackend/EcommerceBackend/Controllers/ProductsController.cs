@@ -30,7 +30,7 @@ public class ProductsController : ControllerBase
     }
 
     // GET: api/products/{id}
-    [HttpGet("{id:int}")]
+    [HttpGet("{id}")]
     public async Task<IActionResult> GetProductById(int id)
     {
         var product = await _inventoryService.GetProductByIdAsync(id);
@@ -42,6 +42,7 @@ public class ProductsController : ControllerBase
         return Ok(ApiResponse<object>.SuccessResponse(data: product));
     }
 
+    // GET: api/products/my-shop
     [HttpGet("my-shop")]
     [Authorize(Roles = "Seller")] // Only seller can access their own factory dashboard
     public async Task<IActionResult> GetMyShopProducts()
