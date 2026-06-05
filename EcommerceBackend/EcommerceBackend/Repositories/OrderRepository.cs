@@ -21,7 +21,9 @@ namespace EcommerceBackend.Repositories
         {
             return await _context.Orders
                 .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
+                    .ThenInclude(oi => oi.Product)
+                        .ThenInclude(p => p.SellerProfile)
+                .Include(o => o.ShippingAddress)
                 .FirstOrDefaultAsync(o => o.Id == orderId);
         }
 
@@ -29,7 +31,10 @@ namespace EcommerceBackend.Repositories
         {
             return await _context.Orders
                 .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
+                    .ThenInclude(oi => oi.Product)
+                        .ThenInclude(p => p!.SellerProfile)
+
+                .Include(o => o.ShippingAddress) 
                 .Where(o => o.UserId == userId)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();

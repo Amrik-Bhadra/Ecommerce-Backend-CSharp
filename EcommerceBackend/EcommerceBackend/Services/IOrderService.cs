@@ -6,4 +6,5 @@ public interface IOrderService
 {
     Task<Order> CheckoutAsync(int userId, CheckoutRequest request);
     Task<List<Order>> GetUserOrderHistoryAsync(int userId);
+    Task<Order> GetOrderDetailsAsync(int userId, int orderId);
 }

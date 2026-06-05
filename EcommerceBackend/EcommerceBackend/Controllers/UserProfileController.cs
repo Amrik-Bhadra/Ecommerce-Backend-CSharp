@@ -24,7 +24,6 @@ public class UserProfileController : ControllerBase
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var profile = await _profileService.GetProfileAsync(userId);
-        //return Ok(new { message = "Profile fetched successfully!", data = profile });
         return Ok(ApiResponse<object>.SuccessResponse(message: "Profile fetched successfully!", data: profile));
     }
 

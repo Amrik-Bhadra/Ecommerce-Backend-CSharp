@@ -2,6 +2,7 @@
 using EcommerceBackend.Models;
 using EcommerceBackend.Repositories;
 using EcommerceBackend.DTOs;
+using EcommerceBackend.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace EcommerceBackend.Services;
@@ -92,4 +93,19 @@ public class OrderService : IOrderService
     }
 
     public async Task<List<Order>> GetUserOrderHistoryAsync(int userId) => await _orderRepo.GetOrdersByUserIdAsync(userId);
+
+    public async Task<Order> GetOrderDetailsAsync(int userId, int orderId)
+    {
+        var order = await _orderRepo.GetOrderByIdAsync(orderId);
+        if (order == null)
+        {
+            throw new NotFoundException("Order not found1");
+        }
+        if(order.UserId != userId)
+        {
+            throw new UnauthorizedAccessException("Security Violation: Unauthorized resource access blocked!");
+        }
+
+        return order;
+    }
 }
